@@ -1,0 +1,6 @@
+figure(1);
+plot(theta.time, theta.signals.values);
+title('Angle')
+xlabel('Time(')
+figure(2);
+plot(omega.time, omega.signals.values);
