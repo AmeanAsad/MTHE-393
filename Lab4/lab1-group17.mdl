@@ -1,0 +1,1 @@
+plot(theta.time, theta.signals.values)
