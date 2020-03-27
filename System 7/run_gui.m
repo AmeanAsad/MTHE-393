@@ -1,0 +1,117 @@
+function [omega] = run_gui()
+%UNTITLED2 Summary of this function goes here
+%   Detailed explanation goes here
+
+%Set frequency range which we will test omega values for 
+start_frequency = 0.25;
+end_frequency = 10000;
+i = start_frequency;
+
+
+%Array of omega values
+omega_values = [];
+
+%Loop to generate the desired omega values within the given frequency range
+while i< end_frequency
+    omega_values = [omega_values i];
+    i = i*(1.2); %We increase omega values by a factor of 1.2 each iteration
+    if i > 15
+        i = round(i);
+    end
+    
+end
+
+%initialize GUI
+blackBox
+% Find handle to hidden figure
+temp = get(0,'showHiddenHandles');
+set(0,'showHiddenHandles','on');
+hfig = gcf;
+% Get the handles structure
+handles = guidata(hfig);
+
+%================Start Editing=============================================
+
+
+% This will let you pick the Field radio button
+set(handles.radioField, 'Value', 1);
+% This changes the equation in the Field textbox
+set(handles.input, 'String', '10 + t^2' );
+blackBox('input_Callback',handles.input,[],handles);
+
+% 
+% % This will let you pick the File radio button
+% set(handles.radioFile, 'Value', 1);
+% % This changes the input file name textbox
+% set(handles.inputFile, 'String', 'inputManual' );
+
+
+% This changes the start time
+set(handles.axisStart, 'String', '0');
+% This changes the end time
+set(handles.axisEnd, 'String', '13');
+% This changes the step size
+set(handles.stepSize, 'String', '0.01');
+% This changes the refine output
+set(handles.refineOutput, 'String', '1');
+counter = 1;
+
+for i = omega_values
+
+    % You need to use a string for the equation you want
+    f = input_function(i);
+    % Or if you have a variable you can use sprintf which is like the
+    % printf function in c programming
+    val = num2str(counter);
+    counter = counter+1;
+    
+    
+    if(i > 5)
+        set(handles.axisEnd, 'String', '1');  
+        set(handles.stepSize, 'String', '0.008');
+    end
+    
+    if(i > 50)
+        set(handles.axisEnd, 'String', '0.4');  
+        set(handles.stepSize, 'String', '0.005');
+    end
+    
+    if(i > 400)
+         set(handles.axisStart, 'String', '0.5');
+         set(handles.stepSize, 'String', '0.0035');
+
+         set(handles.axisEnd, 'String', '0.9');  
+    end
+    
+
+    if(i > 1000)
+            set(handles.axisStart, 'String', '0.5');
+            set(handles.axisEnd, 'String', '0.9'); 
+            set(handles.stepSize, 'String', '0.002');
+    end
+            
+
+        
+        
+    
+    set(handles.input, 'String', f );
+    save_name = "omega" + val;
+    blackBox('input_Callback',handles.input,[],handles);
+    % This changes the save file name
+    set(handles.saveFile, 'String', save_name );
+    % Use the run button
+    blackBox('run_Callback',handles.run,[],handles);
+    % Use the save button
+    blackBox('save_Callback',handles.save,[],handles);
+%     % Use the clear button
+%     blackBox('clear_Callback',handles.clear,[],handles);
+
+end
+%=======================End Editing======================================
+set(0,'showHiddenHandles',temp);
+
+
+omega = 1;
+
+end
+

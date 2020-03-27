@@ -1,0 +1,126 @@
+
+bode_values_matrix = zeros(58,7);
+for i=1:58
+   
+   % First we load the omega variables we saved from our folder to our
+   % workspace. The omega_string refers to the omega value we saved.
+   omega_string = "omega" + num2str(i);
+   
+   %We load the omega into struct using the load function
+   struct = load(omega_string);
+   
+   %getfield returns the content of the given omega variable, allowing us
+   %to access the input and output information.
+   current_omega = getfield(struct, omega_string);
+   
+   % We load the signal values and the time arrays. 
+   input_time = current_omega.input.time;
+   inputs = current_omega.input.signal;
+   outputs = current_omega.output.signal;
+   output_time = current_omega.output.time;
+   output_smoothed = lowpass(outputs, 0.0001);
+   output_smoothed = outputs;
+   
+   % The zero_crossings is an array of time values. Each time value is a
+   % value where our signal crosses the x-axis(ie equals to 0). We use
+   % these arrays to calculate the phase difference between the input and
+   % output signals.
+   output_zero_crossings = get_zero_crossings(output_smoothed, output_time);
+   input_zero_crossings = get_zero_crossings(inputs, input_time);
+  
+
+   
+   input_crossings_size = size(input_zero_crossings);
+   output_crossings_size = size(output_zero_crossings);
+   
+%    disp(output_crossings_size);
+   
+   % This is checking for errors, if our output_crossings_size array has
+   % length 0, then it means that our output did not cross the x-axis. I
+   % added this as a check, because the system behaved weirdly around high
+   % frequencies, so sometimes it didn't cross the x-axis. The "continue"
+   % command tells matlab to skip to the next iteration in the loop and
+   % avoid that omega value. 
+   if(output_crossings_size(2) == 0)
+       continue
+   end
+       
+   %Here I compare how many times the inputs and outputs crossed the
+   %x-axis. Sometimes due to the phase shift, either the inputs or the
+   %outputs would cross the x-axis one more time. I re-adjust there size to
+   %match in order to compare consistent points when calculating the phase
+   %difference. 
+   if(input_crossings_size(2) > output_crossings_size(2))
+       input_zero_crossings = input_zero_crossings(1:output_crossings_size(2));
+   else
+       output_zero_crossings = output_zero_crossings(1: input_crossings_size(2));
+   end
+   
+   output_crossings_size = size(output_zero_crossings);
+  
+   % We get an array of peak values for our output signal. I didn't want to
+   % simply take the maximum value, because usually the output had some
+   % spikes in it's peak values, so instead I wrote a function
+   % (get_amplitude_values) that calculates all the peak amplitude values.
+   % Then I take the mean of these values and use that as our magnitude
+   % value. 
+   magnitude_list = get_amplitude_values(output_smoothed);
+   
+   
+   % Here we calculate the difference between the time when our output
+   % signal crosses the x-axis and when the input signal crosses the x-axis
+   zero_time_difference = input_zero_crossings(1) - output_zero_crossings(1);
+
+   
+   %These vvalues are pretty straight forward, here I am basically filling
+   %up a table to determine the bode-plot. If you would like further
+   %clarification, check the table we had to fill out in lab2 for 393. It's
+   %identical to this one.
+   omega_value = (0.25)*(1.2^i);
+   magnitude = mean(magnitude_list);
+   gain = 20*log10(magnitude);
+   phase_rad = zero_time_difference*omega_value;
+   phase_degrees = rad2deg(phase_rad);
+   omega_log = log10(omega_value);
+
+   bode_values_matrix(i,:) = [omega_value magnitude gain zero_time_difference phase_rad phase_degrees omega_log];
+   
+   
+end
+% 
+% 
+
+
+
+
+% determine 0 crossings by looking at 2 consecutive points, if one is
+% positive and one is negative then pick one and use that as the point that
+% it crosses zero. 
+
+ 
+end_val = 47;
+start = 1;
+
+% Just extracting values from our table.
+magnitude = bode_values_matrix(start:end_val, 2);
+gain = bode_values_matrix(start:end_val,3);
+phase = bode_values_matrix(start:end_val,6);
+omega_log = bode_values_matrix(start:end_val,7);
+
+
+% Plotting. 
+figure(1);
+scatter(omega_log, phase);
+title("Phase v log(\omega)");
+xlabel("log(\omega)");
+ylabel("Phase(deg)");
+
+
+
+figure(2);
+scatter(omega_log, gain);
+title("Gain v log(\omega)");
+xlabel("log(\omega)");
+ylabel("Gain(dB)");
+
+

@@ -1,0 +1,31 @@
+function [amplitude_values] = get_amplitude_values(outputs)
+%Get amplitde values, Outputs an array of peak amplitude values.
+
+
+%  It's also based on Ethan's idea for the zero crossings. We look at 6
+%  consecutive values(I used 6 because its more accurate). If the slope of
+%  the first 3 is positive and the slope of the last 3 is negative, then we
+%  have reached a peak and vice versa. 
+    array_size = size(outputs);
+    amplitude_values = [];
+    for i=1:array_size(1)-5
+        value1 = outputs(i);
+        value2 = outputs(i+1);
+        value3 = outputs(i+2);
+        value4 = outputs(i+3);
+        value5 = outputs(i+4);
+        value6 = outputs(i+5);
+        
+
+        if  (value2 > value1)&&(value3 > value2)&&(value4 < value3)&&(value5 < value4)&&(value6 < value5)
+            amplitude_values =  [amplitude_values, outputs(i+1)];
+        end
+        
+        if  (value2 < value1)&&(value3 < value2)&&(value4 > value3)&&(value5 > value4)&&(value6 > value5)
+            amplitude_values =  [amplitude_values, abs(outputs(i+1))];
+        end
+        
+    end
+    amplitude_values = abs(amplitude_values);
+end
+
